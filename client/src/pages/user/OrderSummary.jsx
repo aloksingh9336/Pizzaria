@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { endpoints } from '../../services/api';
+import RazorpayCheckout from '../../components/RazorpayCheckout';
 
 export default function OrderSummary() {
   const nav = useNavigate();
@@ -25,69 +26,35 @@ export default function OrderSummary() {
     finally { setBusy(false); }
   };
 
-  const payMock = async (success) => {
-    try {
-      await endpoints.verifyPayment(orderId, {
-        razorpay_payment_id: success ? `pay_mock_${Date.now()}` : 'pay_failed',
-        razorpay_order_id: payInfo.razorpayOrderId,
-        simulateSuccess: success,
-      });
-      if (success) { sessionStorage.removeItem('pizzaDraft'); nav(`/tracking/${orderId}`); }
-      else setError('Payment failed (simulated).');
-    } catch (e) { setError(e.response?.data?.message || 'Verification failed'); }
-    setShowPay(false);
-  };
-
-  const payRazorpay = () => {
-    // Real Razorpay checkout if keys present and not mock
-    if (payInfo.mock || !window.Razorpay) { return; }
-    const rzp = new window.Razorpay({
-      key: payInfo.keyId,
-      amount: payInfo.amount,
-      currency: 'INR',
-      name: 'Pizzaria',
-      description: 'Pizza order',
-      order_id: payInfo.razorpayOrderId,
-      handler: async (resp) => {
-        try {
-          await endpoints.verifyPayment(orderId, { ...resp, simulateSuccess: false });
-          sessionStorage.removeItem('pizzaDraft'); nav(`/tracking/${orderId}`);
-        } catch { setError('Payment verification failed'); }
-      },
-      modal: { ondismiss: () => setShowPay(false) },
-    });
-    rzp.open();
-  };
-
   return (
-    <div className="max-w-xl mx-auto p-6">
-      <h2 className="text-2xl font-bold">Order Summary</h2>
-      <div className="card mt-4">
+    <div className="max-w-xl mx-auto px-4 pb-16">
+      <h2 className="text-2xl font-extrabold anim-fade-up">Order Summary</h2>
+      <div className="card mt-4 anim-fade-up d1">
         {draft.items.map((it, i) => (
-          <div key={i} className="text-sm border-b py-2">
-            <div><b>Base:</b> {it.base} · <b>Sauce:</b> {it.sauce} · <b>Cheese:</b> {it.cheese}</div>
-            <div><b>Veggies:</b> {it.vegetables.join(', ') || 'none'}</div>
-            <div className="font-bold">₹{it.price}</div>
+          <div key={i} className="text-sm border-b border-orange-100 py-3 flex justify-between gap-3">
+            <div>
+              <div><b>Base:</b> {it.base} · <b>Sauce:</b> {it.sauce} · <b>Cheese:</b> {it.cheese}</div>
+              <div className="text-gray-500"><b>Veggies:</b> {it.vegetables.join(', ') || 'none'}</div>
+            </div>
+            <div className="font-extrabold text-red-600 whitespace-nowrap">₹{it.price}</div>
           </div>
         ))}
-        <div className="font-extrabold text-lg mt-2">Total: ₹{draft.totalAmount}</div>
-        <button className="btn btn-primary w-full mt-4" disabled={busy} onClick={placeOrder}>{busy ? 'Placing...' : 'Proceed to Payment'}</button>
-        {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
+        <div className="flex justify-between items-center mt-3">
+          <span className="text-gray-500 text-sm">Total payable</span>
+          <span className="font-extrabold text-xl">₹{draft.totalAmount}</span>
+        </div>
+        <button className="btn btn-primary w-full mt-4" disabled={busy} onClick={placeOrder}>{busy ? 'Placing…' : 'Proceed to Payment →'}</button>
+        {error && <p className="text-red-600 text-sm mt-2 font-semibold bg-red-50 border border-red-200 rounded-xl px-3 py-2">{error}</p>}
       </div>
 
-      {showPay && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl p-6 max-w-sm w-full">
-            <h3 className="font-bold text-lg">Razorpay Checkout (Test Mode)</h3>
-            <p className="text-sm text-gray-600 mt-1">Order: {payInfo.razorpayOrderId} · ₹{payInfo.amount / 100} {payInfo.mock ? '(MOCK)' : ''}</p>
-            {!payInfo.mock && <button className="btn btn-primary w-full mt-3" onClick={payRazorpay}>Pay with Razorpay</button>}
-            <div className="grid grid-cols-2 gap-2 mt-3">
-              <button className="btn btn-primary" onClick={() => payMock(true)}>Simulate Success</button>
-              <button className="btn btn-secondary" onClick={() => payMock(false)}>Simulate Failure</button>
-            </div>
-            <button className="text-sm underline mt-3" onClick={() => setShowPay(false)}>Cancel</button>
-          </div>
-        </div>
+      {showPay && payInfo && (
+        <RazorpayCheckout
+          orderId={orderId}
+          payInfo={payInfo}
+          amount={draft.totalAmount}
+          onSuccess={() => { sessionStorage.removeItem('pizzaDraft'); nav(`/tracking/${orderId}`); }}
+          onClose={() => setShowPay(false)}
+        />
       )}
     </div>
   );

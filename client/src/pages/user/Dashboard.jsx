@@ -4,6 +4,7 @@ import { io } from 'socket.io-client';
 import { endpoints } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { RealImage } from '../../components/RealImage';
+import RazorpayCheckout from '../../components/RazorpayCheckout';
 import { getImage, IMAGE_MAP } from '../../data/images';
 
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
@@ -138,18 +139,7 @@ function OrderCard({ order, tone, onPatch }) {
     finally { setBusy(false); }
   };
 
-  const finishPay = async (success) => {
-    try {
-      await endpoints.verifyPayment(order._id, {
-        razorpay_payment_id: success ? `pay_mock_${Date.now()}` : 'pay_failed',
-        razorpay_order_id: payInfo.razorpayOrderId,
-        simulateSuccess: success,
-      });
-      setPaying(false);
-      if (success) onPatch(order._id, { paymentStatus: 'paid', status: 'Order Received' });
-      else setPayErr('Payment failed (simulated). Try again.');
-    } catch (e) { setPayErr(e.response?.data?.message || 'Verification failed'); setPaying(false); }
-  };
+  // handled inside RazorpayCheckout
 
   const reorder = () => {
     sessionStorage.setItem('pizzaDraft', JSON.stringify({ items: order.items, totalAmount: order.totalAmount }));
@@ -205,18 +195,14 @@ function OrderCard({ order, tone, onPatch }) {
         </div>
       </div>
 
-      {paying && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl p-6 max-w-sm w-full anim-pop">
-            <h3 className="font-extrabold text-lg">Complete payment 💳</h3>
-            <p className="text-sm text-gray-500 mt-1">₹{order.totalAmount} · Test mode (MOCK)</p>
-            <div className="grid grid-cols-2 gap-2 mt-4">
-              <button className="btn btn-primary text-sm" onClick={() => finishPay(true)}>Simulate Success</button>
-              <button className="btn btn-secondary text-sm" onClick={() => finishPay(false)}>Simulate Failure</button>
-            </div>
-            <button className="text-sm underline mt-3 text-gray-500" onClick={() => setPaying(false)}>Cancel</button>
-          </div>
-        </div>
+      {paying && payInfo && (
+        <RazorpayCheckout
+          orderId={order._id}
+          payInfo={payInfo}
+          amount={order.totalAmount}
+          onSuccess={() => { setPaying(false); onPatch(order._id, { paymentStatus: 'paid', status: 'Order Received' }); }}
+          onClose={() => setPaying(false)}
+        />
       )}
     </div>
   );
