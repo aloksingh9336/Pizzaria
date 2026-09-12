@@ -3,7 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import { endpoints } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
-import { PizzaWhole } from '../../components/PizzaArt';
+import { RealImage } from '../../components/RealImage';
+import { getImage, IMAGE_MAP } from '../../data/images';
 
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
 const STAGES = ['Order Received', 'In Kitchen', 'Sent to Delivery', 'Delivered'];
@@ -90,7 +91,9 @@ export default function Dashboard() {
             {active.map((o, i) => <OrderCard key={o._id} order={o} tone={TONES[i % TONES.length]} onPatch={patchOrder} />)}
             {!active.length && (
               <div className="card text-center py-8 anim-pop">
-                <PizzaWhole tone="classic" size={110} className="mx-auto anim-float" />
+                <div className="w-28 h-28 mx-auto rounded-3xl overflow-hidden shadow-lg">
+                  <RealImage src={IMAGE_MAP['_special_supreme']} alt="No orders" fallbackTone="classic" size={112} imgClassName="w-full h-full object-cover anim-float" />
+                </div>
                 <p className="font-extrabold mt-3">No active orders</p>
                 <p className="text-sm text-gray-500">The oven is waiting…</p>
                 <Link to="/builder" className="btn btn-primary text-sm inline-block mt-4">Build your pizza →</Link>
@@ -157,7 +160,9 @@ function OrderCard({ order, tone, onPatch }) {
     <div className="card card-hover !p-5 anim-fade-up">
       <div className="flex gap-4">
         <div className="hidden sm:flex flex-col items-center shrink-0">
-          <PizzaWhole tone={tone} size={92} />
+          <div className="w-[92px] h-[92px] rounded-2xl overflow-hidden border border-orange-100 shadow-sm bg-orange-50">
+            <RealImage src={getImage(order.items[0]?.base, IMAGE_MAP['_special_supreme'])} alt={order.items[0]?.base} fallbackTone={tone} size={92} imgClassName="w-full h-full object-cover" />
+          </div>
           <span className="text-[11px] font-bold text-gray-400 mt-1">#{order._id.slice(-6)}</span>
         </div>
         <div className="flex-1 min-w-0">

@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { endpoints } from '../../services/api';
-import { PizzaWhole, PizzaSlice, OfferBadge } from '../../components/PizzaArt';
+import { OfferBadge } from '../../components/PizzaArt';
+import { RealImage } from '../../components/RealImage';
+import { IMAGE_MAP, getImage } from '../../data/images';
 
 const CATEGORIES = [
   { key: 'base', label: 'Bases', icon: '🍞' },
@@ -12,9 +14,9 @@ const CATEGORIES = [
 
 // Chef-curated specials assembled from live pizza options
 const SPECIALS = [
-  { name: 'Supreme Pan Pizza', desc: 'Loaded with veggies, olives, mushrooms & more', badge: 'BESTSELLER', rating: '4.8 (12.5K+)', tone: 'classic', pick: { base: 'Thick Crust', sauce: 'Tomato Basil', cheese: 'Mozzarella', vegetables: ['Capsicum', 'Onion', 'Mushroom', 'Olives'] } },
-  { name: 'Cheese Lovers Pizza', desc: 'Extra cheese, extra delight for true cheese lovers', badge: 'POPULAR', rating: '4.7 (8.7K+)', tone: 'cheese', pick: { base: 'Cheese Burst', sauce: 'Alfredo', cheese: 'Cheddar', vegetables: ['Onion'] } },
-  { name: 'BBQ Garden Pizza', desc: 'Smoky BBQ with crunchy garden veggies', badge: 'NEW', rating: '4.6 (6.3K+)', tone: 'bbq', pick: { base: 'Thin Crust', sauce: 'BBQ', cheese: 'Mozzarella', vegetables: ['Capsicum', 'Jalapeno', 'Onion'] } },
+  { name: 'Supreme Pan Pizza', desc: 'Loaded with veggies, olives, mushrooms & more', badge: 'BESTSELLER', rating: '4.8 (12.5K+)', tone: 'classic', img: IMAGE_MAP['_special_supreme'], pick: { base: 'Thick Crust', sauce: 'Tomato Basil', cheese: 'Mozzarella', vegetables: ['Capsicum', 'Onion', 'Mushroom', 'Olives'] } },
+  { name: 'Cheese Lovers Pizza', desc: 'Extra cheese, extra delight for true cheese lovers', badge: 'POPULAR', rating: '4.7 (8.7K+)', tone: 'cheese', img: IMAGE_MAP['_special_cheese'], pick: { base: 'Cheese Burst', sauce: 'Alfredo', cheese: 'Cheddar', vegetables: ['Onion'] } },
+  { name: 'BBQ Garden Pizza', desc: 'Smoky BBQ with crunchy garden veggies', badge: 'NEW', rating: '4.6 (6.3K+)', tone: 'bbq', img: IMAGE_MAP['_special_bbq'], pick: { base: 'Thin Crust', sauce: 'BBQ', cheese: 'Mozzarella', vegetables: ['Capsicum', 'Jalapeno', 'Onion'] } },
 ];
 
 const priceOf = (options, cat, name) =>
@@ -78,7 +80,9 @@ export default function Landing() {
           </div>
           <div className="flex justify-center relative">
             <div className="absolute w-64 h-64 rounded-full bg-red-600/40 blur-3xl" />
-            <PizzaWhole tone="classic" size={300} className="anim-float relative drop-shadow-2xl max-w-full h-auto" />
+            <div className="anim-float relative rounded-[2rem] overflow-hidden shadow-2xl max-w-[320px] aspect-square">
+              <RealImage src={IMAGE_MAP['_hero']} alt="Cheesy pizza hero" fallbackTone="classic" size={320} imgClassName="w-full h-full object-cover" />
+            </div>
             <div className="absolute -bottom-1 right-4 sm:right-10 anim-pop d3"><OfferBadge text="30% OFF" /></div>
           </div>
         </div>
@@ -116,8 +120,10 @@ export default function Landing() {
         {data && (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 mt-4">
             {(data[cat] || []).map((i, idx) => (
-              <div key={i._id || i.name} className={`card card-hover !p-4 text-center anim-fade-up ${!i.available ? 'opacity-50 grayscale' : ''}`} style={{ animationDelay: `${idx * 0.06}s` }}>
-                <PizzaSlice size={64} className="mx-auto" />
+              <div key={i._id || i.name} className={`card card-hover !p-3 text-center anim-fade-up overflow-hidden ${!i.available ? 'opacity-60 grayscale' : ''}`} style={{ animationDelay: `${idx * 0.06}s` }}>
+                <div className="rounded-2xl overflow-hidden aspect-square bg-orange-50 border border-orange-100">
+                  <RealImage src={getImage(i.name)} alt={i.name} fallbackTone={cat === 'vegetable' ? 'veggie' : cat === 'sauce' ? 'bbq' : 'classic'} variant="slice" size={96} imgClassName="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                </div>
                 <div className="font-bold text-sm mt-2">{i.name}</div>
                 <div className="text-red-600 font-extrabold text-sm">+₹{i.priceModifier}</div>
                 <div className={`text-[11px] font-bold mt-1 ${i.available ? 'text-green-600' : 'text-red-500'}`}>{i.available ? `● In stock (${i.stock ?? '–'})` : '🚫 Out of stock'}</div>
@@ -136,10 +142,10 @@ export default function Landing() {
         <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
           {specials.map((s, idx) => (
             <div key={s.name} className="card card-hover overflow-hidden !p-0 anim-fade-up" style={{ animationDelay: `${idx * 0.12}s` }}>
-              <div className="relative flex justify-center pt-5" style={{ background: 'radial-gradient(circle at 50% 120%, #FFE9C9, #FFF6EC)' }}>
-                <span className="badge absolute top-3 left-3 text-white" style={{ background: s.badge === 'NEW' ? '#E0262E' : s.badge === 'POPULAR' ? '#FF6B00' : '#B3121B' }}>{s.badge}</span>
+              <div className="relative h-48 overflow-hidden" style={{ background: 'radial-gradient(circle at 50% 120%, #FFE9C9, #FFF6EC)' }}>
+                <RealImage src={s.img} alt={s.name} fallbackTone={s.tone} size={240} imgClassName="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                <span className="badge absolute top-3 left-3 text-white shadow" style={{ background: s.badge === 'NEW' ? '#E0262E' : s.badge === 'POPULAR' ? '#FF6B00' : '#B3121B' }}>{s.badge}</span>
                 <span className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white shadow flex items-center justify-center hover:scale-110 transition cursor-pointer">🤍</span>
-                <PizzaWhole tone={s.tone} size={170} className="hover:rotate-12 transition-transform duration-500" />
               </div>
               <div className="p-4">
                 <h3 className="font-extrabold">{s.name}</h3>
@@ -170,7 +176,9 @@ export default function Landing() {
           <h3 className="text-3xl font-extrabold">UP TO 30% OFF <span className="block text-base font-semibold text-orange-100">On selected combos</span></h3>
           <Link to="/builder" className="btn mt-4 inline-block bg-white text-red-600 font-extrabold shadow hover:-translate-y-0.5">Order Now →</Link>
         </div>
-        <PizzaWhole tone="veggie" size={190} className="anim-float relative" />
+        <div className="relative w-44 h-44 sm:w-48 sm:h-48 rounded-3xl overflow-hidden shadow-2xl anim-float shrink-0">
+          <RealImage src={IMAGE_MAP['_combo']} alt="Combo pizza" fallbackTone="veggie" size={200} imgClassName="w-full h-full object-cover" />
+        </div>
         <div className="relative anim-pop d5"><OfferBadge text="30% OFF" size={104} /></div>
       </div>
 
