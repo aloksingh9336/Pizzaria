@@ -24,8 +24,8 @@
 ### 👤 User Side
 | Feature | Details |
 |---|---|
-| 📝 Registration + Email Verification | Token link emailed (logged to server console in dev) |
-| 🔐 JWT Login | Rate-limited, verification-gated, 7-day tokens |
+| 📝 Registration | Instant access — register and log straight in (no email verification) |
+| 🔐 JWT Login | Rate-limited, 7-day tokens |
 | 🔑 Forgot / Reset Password | One-hour tokenised email reset links |
 | 🍕 Live Menu Dashboard | Stock-based availability, auto-disabled sold-out items |
 | 🧙 4-Step Pizza Builder | Base (5) → Sauce (5) → Cheese (3) → Veggies multi-select (5), with progress bar, back/next & running total |
@@ -94,7 +94,7 @@ npm run dev                 # → http://localhost:5173
 
 ## 🎬 Demo Flow (5 minutes)
 
-1. **Register** at `/register` → grab the verification link from the **server terminal** → open it → **Login**.
+1. **Register** at `/register` → **Login** immediately — no verification step.
 2. **Build a pizza** at `/builder` — pick through all 4 steps, watch the running total.
 3. **Review** at `/summary` → *Proceed to Payment* → click **Simulate Success** 🎉 → land on live tracking.
 4. **Admin view**: open `/admin/login` in another window → *Orders* → move the order `In Kitchen → Sent to Delivery → Delivered` — watch the user page update **without refresh**.

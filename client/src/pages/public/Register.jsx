@@ -10,7 +10,7 @@ export default function Register() {
     e.preventDefault(); setErr(''); setMsg('');
     try {
       const r = await endpoints.register(form);
-      setMsg(`Registered! Verification link sent to email. Dev token: ${r.data.verificationToken} — open /verify-email/${r.data.verificationToken} or check server console.`);
+      setMsg('Registered! You can now log in.');
     } catch (e) { setErr(e.response?.data?.message || 'Failed'); }
   };
   return (

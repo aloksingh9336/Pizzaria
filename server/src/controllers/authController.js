@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const env = require('../config/env');
-const { sendVerificationEmail, sendResetEmail, randomToken } = require('../services/emailService');
+const { sendResetEmail, randomToken } = require('../services/emailService');
 
 function signUser(user) {
   return jwt.sign({ id: user._id, role: 'user' }, env.jwtSecret, { expiresIn: env.jwtExpiresIn });
@@ -11,20 +11,15 @@ async function register(req, res) {
   const { name, email, password } = req.body;
   const existing = await User.findOne({ email: email.toLowerCase() });
   if (existing) return res.status(409).json({ success: false, message: 'Email already registered' });
-  const token = randomToken();
   const user = await User.create({
     name,
     email: email.toLowerCase(),
     password,
-    emailVerificationToken: token,
-    emailVerificationExpires: new Date(Date.now() + 24 * 3600 * 1000),
+    isEmailVerified: true,
   });
-  await sendVerificationEmail(user, token);
   res.status(201).json({
     success: true,
-    message: 'Registered. Check email (or server console) for verification link.',
-    // Exposed for demo/dev when SMTP not configured:
-    verificationToken: token,
+    message: 'Registered. You can now log in.',
   });
 }
 
@@ -48,7 +43,6 @@ async function login(req, res) {
   if (!user) return res.status(401).json({ success: false, message: 'Invalid credentials' });
   const ok = await user.comparePassword(password);
   if (!ok) return res.status(401).json({ success: false, message: 'Invalid credentials' });
-  if (!user.isEmailVerified) return res.status(403).json({ success: false, message: 'Please verify your email first' });
   const token = signUser(user);
   res.json({ success: true, token, user: { id: user._id, name: user.name, email: user.email } });
 }
