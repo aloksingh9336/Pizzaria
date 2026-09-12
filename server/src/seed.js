@@ -9,9 +9,13 @@ const INVENTORY = [
   { type: 'base', name: 'Thin Crust', stockQuantity: 50, lowStockThreshold: 10, unit: 'pcs' },
   { type: 'base', name: 'Thick Crust', stockQuantity: 50, lowStockThreshold: 10, unit: 'pcs' },
   { type: 'base', name: 'Cheese Burst', stockQuantity: 20, lowStockThreshold: 8, unit: 'pcs' },
+  { type: 'base', name: 'Whole Wheat', stockQuantity: 40, lowStockThreshold: 10, unit: 'pcs' },
+  { type: 'base', name: 'Gluten-Free', stockQuantity: 25, lowStockThreshold: 8, unit: 'pcs' },
   { type: 'sauce', name: 'Tomato Basil', stockQuantity: 60, lowStockThreshold: 10, unit: 'cups' },
   { type: 'sauce', name: 'BBQ', stockQuantity: 40, lowStockThreshold: 10, unit: 'cups' },
   { type: 'sauce', name: 'Pesto', stockQuantity: 25, lowStockThreshold: 8, unit: 'cups' },
+  { type: 'sauce', name: 'Alfredo', stockQuantity: 30, lowStockThreshold: 8, unit: 'cups' },
+  { type: 'sauce', name: 'Peri Peri', stockQuantity: 30, lowStockThreshold: 8, unit: 'cups' },
   { type: 'cheese', name: 'Mozzarella', stockQuantity: 70, lowStockThreshold: 15, unit: 'cups' },
   { type: 'cheese', name: 'Cheddar', stockQuantity: 35, lowStockThreshold: 10, unit: 'cups' },
   { type: 'cheese', name: 'Vegan Cheese', stockQuantity: 15, lowStockThreshold: 8, unit: 'cups' },
@@ -23,8 +27,8 @@ const INVENTORY = [
 ];
 
 const PRICES = {
-  'Thin Crust': 100, 'Thick Crust': 120, 'Cheese Burst': 180,
-  'Tomato Basil': 20, BBQ: 30, Pesto: 40,
+  'Thin Crust': 100, 'Thick Crust': 120, 'Cheese Burst': 180, 'Whole Wheat': 110, 'Gluten-Free': 150,
+  'Tomato Basil': 20, BBQ: 30, Pesto: 40, Alfredo: 35, 'Peri Peri': 35,
   Mozzarella: 50, Cheddar: 60, 'Vegan Cheese': 70,
   Capsicum: 25, Onion: 15, Mushroom: 35, Olives: 40, Jalapeno: 30,
 };
