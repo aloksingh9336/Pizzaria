@@ -41,7 +41,7 @@ export default function Dashboard() {
       </div>
       {loading && <p className="mt-4">Loading...</p>}
       {error && <p className="text-red-600 mt-4">{error}</p>}
-      <h3 className="font-bold mt-6">Active ({active.length}) — live ⚡</h3>
+      <h3 className="font-bold mt-6 flex items-center gap-2">Active ({active.length}) <span className="flex items-center gap-1.5 text-xs font-extrabold text-red-600 bg-red-50 border border-red-100 rounded-full px-2.5 py-1"><span className="live-dot w-2 h-2 rounded-full bg-red-600 inline-block" />LIVE</span></h3>
       <div className="grid gap-3 mt-2">
         {active.map((o) => <OrderCard key={o._id} order={o} />)}
         {!active.length && !loading && <p className="text-gray-500 text-sm">No active orders.</p>}

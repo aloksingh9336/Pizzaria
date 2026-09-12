@@ -2,10 +2,76 @@
 @tailwind components;
 @tailwind utilities;
 
-body { @apply bg-orange-50 text-gray-900; }
-.btn { @apply px-4 py-2 rounded font-semibold transition; }
-.btn-primary { @apply bg-red-600 text-white hover:bg-red-700; }
-.btn-secondary { @apply bg-gray-200 hover:bg-gray-300; }
-.card { @apply bg-white rounded-xl shadow p-5; }
-.input { @apply w-full border rounded px-3 py-2 mt-1; }
-.badge { @apply inline-block px-2 py-1 rounded text-xs font-bold; }
+:root {
+  --cream: #FFF6EC;
+  --ink: #2B2118;
+  --brand: #E0262E;
+  --brand-dark: #B3121B;
+  --gold: #FFB800;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  @apply text-gray-900;
+  background: var(--cream);
+  color: var(--ink);
+  font-family: 'Poppins', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ---------- Theme primitives ---------- */
+.btn { @apply px-4 py-2 rounded-full font-semibold transition-all duration-200 active:scale-95; }
+.btn-primary { @apply text-white shadow-lg shadow-red-600/30 hover:shadow-red-600/50 hover:-translate-y-0.5; background: linear-gradient(135deg, #F22B34, var(--brand-dark)); }
+.btn-secondary { @apply bg-white text-gray-800 border border-orange-100 hover:bg-orange-50 shadow-sm; }
+.card { @apply bg-white rounded-3xl shadow-[0_10px_30px_rgba(180,80,20,0.10)] border border-orange-100/70 p-5 transition-all duration-300; }
+.card-hover:hover { @apply -translate-y-1.5 shadow-[0_18px_40px_rgba(180,80,20,0.18)]; }
+.input { @apply w-full border border-orange-200 rounded-2xl px-4 py-2.5 mt-1 bg-orange-50/40 focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-400 transition; }
+.badge { @apply inline-block px-2.5 py-1 rounded-full text-xs font-bold; }
+.section-title { @apply text-xl font-extrabold tracking-tight; }
+
+/* ---------- Keyframe animations ---------- */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes floaty {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-12px) rotate(2deg); }
+}
+@keyframes spinSlow {
+  to { transform: rotate(360deg); }
+}
+@keyframes popIn {
+  0% { opacity: 0; transform: scale(0.85); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes pulseDot {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(224, 38, 46, 0.5); }
+  50% { box-shadow: 0 0 0 7px rgba(224, 38, 46, 0); }
+}
+@keyframes cheeseDrip {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(1.15); }
+}
+
+.anim-fade-up { animation: fadeUp 0.6s ease both; }
+.anim-pop { animation: popIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.anim-float { animation: floaty 5s ease-in-out infinite; }
+.anim-spin-slow { animation: spinSlow 24s linear infinite; }
+.live-dot { animation: pulseDot 1.6s ease-in-out infinite; }
+
+.marquee-track { display: flex; width: max-content; animation: marquee 22s linear infinite; }
+
+/* staggered entrances */
+.d1 { animation-delay: 0.05s; } .d2 { animation-delay: 0.15s; } .d3 { animation-delay: 0.25s; }
+.d4 { animation-delay: 0.35s; } .d5 { animation-delay: 0.45s; } .d6 { animation-delay: 0.55s; }
+
+/* hero pattern */
+.hero-texture {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.14) 1.5px, transparent 1.5px);
+  background-size: 22px 22px;
+}
