@@ -58,17 +58,19 @@ function OrderCard({ order }) {
   const idx = STAGES.indexOf(order.status);
   return (
     <div className="card">
-      <div className="flex justify-between">
-        <span className="font-mono text-xs">{order._id.slice(-6)}</span>
-        <span className={`badge ${order.paymentStatus === 'paid' ? 'bg-green-200' : 'bg-yellow-200'}`}>{order.paymentStatus}</span>
+      <div className="flex justify-between items-center">
+        <span className="font-mono text-xs text-gray-500">#{order._id.slice(-6)}</span>
+        <span className={`badge ${order.paymentStatus === 'paid' ? 'bg-green-200 text-green-900' : 'bg-yellow-200 text-yellow-900'}`}>{order.paymentStatus}</span>
       </div>
-      <div className="mt-2 flex gap-1">
+      <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-1.5">
         {STAGES.map((s, i) => (
-          <span key={s} className={`badge flex-1 text-center ${i <= idx ? 'bg-red-600 text-white' : 'bg-gray-100'}`}>{s}</span>
+          <span key={s} className={`badge flex items-center justify-center text-center leading-tight min-h-[2rem] px-1 ${i <= idx ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-500'}`}>{s}</span>
         ))}
       </div>
-      <div className="text-sm mt-2">₹{order.totalAmount} · {order.items.length} pizza(s) · {new Date(order.createdAt).toLocaleString()}</div>
-      <Link to={`/tracking/${order._id}`} className="text-sm underline text-red-700">Track →</Link>
+      <div className="mt-3 pt-3 border-t flex justify-between items-center gap-2">
+        <span className="text-sm text-gray-700">₹{order.totalAmount} · {order.items.length} pizza(s) · {new Date(order.createdAt).toLocaleString()}</span>
+        <Link to={`/tracking/${order._id}`} className="text-sm font-semibold text-red-700 hover:underline whitespace-nowrap">Track →</Link>
+      </div>
     </div>
   );
 }
