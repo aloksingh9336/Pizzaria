@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body { @apply bg-orange-50 text-gray-900; }
+.btn { @apply px-4 py-2 rounded font-semibold transition; }
+.btn-primary { @apply bg-red-600 text-white hover:bg-red-700; }
+.btn-secondary { @apply bg-gray-200 hover:bg-gray-300; }
+.card { @apply bg-white rounded-xl shadow p-5; }
+.input { @apply w-full border rounded px-3 py-2 mt-1; }
+.badge { @apply inline-block px-2 py-1 rounded text-xs font-bold; }
