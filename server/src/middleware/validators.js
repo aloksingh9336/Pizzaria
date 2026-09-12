@@ -16,14 +16,14 @@ const validate = (schema, source = 'body') => (req, res, next) => {
 const schemas = {
   register: Joi.object({
     name: Joi.string().min(2).max(60).required(),
-    email: Joi.string().email().required(),
+    email: Joi.string().email({ tlds: { allow: false } }).required(),
     password: Joi.string().min(6).max(100).required(),
   }),
   login: Joi.object({
-    email: Joi.string().email().required(),
+    email: Joi.string().email({ tlds: { allow: false } }).required(),
     password: Joi.string().required(),
   }),
-  forgot: Joi.object({ email: Joi.string().email().required() }),
+  forgot: Joi.object({ email: Joi.string().email({ tlds: { allow: false } }).required() }),
   reset: Joi.object({ password: Joi.string().min(6).max(100).required() }),
   createOrder: Joi.object({
     items: Joi.array()
