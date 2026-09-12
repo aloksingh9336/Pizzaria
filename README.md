@@ -286,6 +286,6 @@ VITE_SOCKET_URL=https://<your-api>.vercel.app
 
 <div align="center">
 
-Made with 🍕 · MIT License · PRs welcome!
+Made By Alok Singh🍕 · MIT License · PRs welcome!
 
 </div>
