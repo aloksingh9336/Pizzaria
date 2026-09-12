@@ -27,3 +27,6 @@ Thumbs.db
 # Mongo / misc
 *.pem
 dump/
+
+# Interview guide (local only)
+Interview-Guide-Pizzaria.pdf
