@@ -13,7 +13,9 @@
 ![Razorpay](https://img.shields.io/badge/Payments-Razorpay_Test_Mode-3395FF?style=flat-square)
 ![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)
 
-[Features](#-features) · [Quick Start](#-quick-start) · [Demo Flow](#-demo-flow-5-minutes) · [API](#-api-reference) · [Project Structure](#-project-structure)
+**Live Demo:** Frontend → https://pizzaria-3e3n.vercel.app/ · API → https://pizzaria-ug4h.vercel.app/api/health
+
+[Features](#-features) · [Quick Start](#-quick-start) · [Demo Flow](#-demo-flow-5-minutes) · [Screens](#-screens) · [System Design](#-system-design) · [API](#-api-reference) · [Project Structure](#-project-structure)
 
 </div>
 
@@ -30,8 +32,9 @@
 | 🍕 Live Menu Dashboard | Stock-based availability, auto-disabled sold-out items |
 | 🧙 4-Step Pizza Builder | Base (5) → Sauce (5) → Cheese (3) → Veggies multi-select (5), with progress bar, back/next & running total |
 | 🧾 Order Summary | Final review before payment |
-| 💳 Razorpay Checkout (Test Mode) | Real `checkout.js` when keys set, else one-click **Simulate Success / Failure** |
+| 💳 Razorpay Checkout (Test Mode) | Real `checkout.js` when keys set, else realistic modal: **UPI / QR / Card / NetBanking / Wallet** with demo QR & animations |
 | 📡 Live Order Tracking | `Order Received → In Kitchen → Sent to Delivery → Delivered` via Socket.IO + polling fallback |
+| 🗺️ Demo Delivery Map | Leaflet + OSM map, animated rider 🏪→🛵→📍, ETA, partner card (call/message) — all demo, no real GPS |
 
 ### 🛠️ Admin Side
 | Feature | Details |
@@ -45,16 +48,93 @@
 
 ---
 
+## 📸 Screens
+
+| Landing — Hero & Popular Picks | Menu Categories | Dashboard — Live Orders |
+|---|---|---|
+| ![Frontpage](readmefiles/frontpage.png) | ![Menu](readmefiles/menu.png) | ![Dashboard](readmefiles/image.png) |
+
+> Images: `readmefiles/frontpage.png` · `readmefiles/menu.png` · `readmefiles/image.png`
+
+---
+
 ## 🧰 Tech Stack
 
 | Layer | Tech |
 |---|---|
-| Frontend | React 18, Vite, React Router 6, Axios, Context API, Tailwind CSS, `socket.io-client` |
+| Frontend | React 18, Vite, React Router 6, Axios, Context API, Tailwind CSS, `socket.io-client`, Leaflet + react-leaflet, Unsplash CDN images |
 | Backend | Node.js, Express 4, Mongoose, Socket.IO, JWT, bcryptjs, Joi, helmet, cors, express-rate-limit |
-| Payments | Razorpay (test mode + mock fallback) |
+| Payments | Razorpay (test mode + mock fallback + realistic checkout UI) |
 | Email | Nodemailer (SMTP or console-stream in dev) |
 | Jobs | node-cron low-stock scanner |
-| Database | MongoDB |
+| Database | MongoDB Atlas / Local |
+| Deploy | Vercel (frontend + serverless API), Render (alternative for full Socket.IO) |
+
+---
+
+## 🏗️ System Design
+
+### Architecture
+
+```
+                ┌─────────────┐
+                │   Vercel    │
+                │  Frontend   │  Vite + React Router
+                │  (SPA)      │  Tailwind, Context API
+                └──────┬──────┘
+                       │  Axios (VITE_API_URL) + socket.io-client
+                       ▼
+┌─────────────────────────────────────────────────────┐
+│              Vercel Serverless API                  │
+│  Express + api/index.js (serverless function)       │
+│  ┌──────────┬──────────┬──────────┬──────────┐      │
+│  │  /auth   │ /admin/* │ /orders  │/pizza-   │      │
+│  │ register │  auth    │  create  │ options  │      │
+│  │  login   │ inventory│  payment │          │      │
+│  │  forgot  │  orders  │  verify  │          │      │
+│  └────┬─────┴────┬─────┴────┬─────┴────┬─────┘      │
+│       │          │          │          │             │
+│  ┌────▼───┐ ┌───▼────┐ ┌───▼───┐ ┌────▼────┐          │
+│  │ JWT +  │ │ Joi    │ │Mongoose│ │Razorpay │        │
+│  │ bcrypt │ │validation│ │ ODM   │ │(mock/  │        │
+│  │        │ │helmet  │ │       │ │ live)   │        │
+│  └────────┘ └────────┘ └───────┘ └─────────┘        │
+│           ┌──────────────────┐                        │
+│           │  services/       │                        │
+│           │  emailService    │──► Nodemailer          │
+│           │  inventoryService│──► auto-decrement      │
+│           │  stockAlert+node-cron ──► low-stock email│
+│           └──────────────────┘                        │
+└───────────────────┬─────────────────────────────────┘
+                    │  Mongoose  (MONGO_URI)
+                    ▼
+              ┌──────────┐
+              │ MongoDB  │  User, Admin, InventoryItem, PizzaOption, Order
+              │  Atlas   │
+              └──────────┘
+
+Local dev alternative (full realtime):
+  server/src/server.js  →  http.createServer + Socket.IO
+  Rooms:  user:<id>  |  admin
+  Events: order:created → admin,  order:status → user,  stock:low/updated → admin
+  Fallback: polling every 6–8s (Dashboard, Tracking)
+```
+
+### Data Models
+
+- **User** — name, email (unique), password (hashed), isEmailVerified, tokens, role=user
+- **Admin** — name, email (unique), password (hashed), role=admin (seeded, no public register)
+- **InventoryItem** — type enum[base,sauce,cheese,vegetable], name, stockQuantity, lowStockThreshold, unit, lastAlertedAt
+- **PizzaOption** — category enum, name, priceModifier, linkedInventoryItemId
+- **Order** — user ref, items[{base,sauce,cheese,vegetables[],price}], totalAmount, paymentStatus enum[pending,paid,failed], razorpayOrderId/PaymentId, status enum[Order Received,In Kitchen,Sent to Delivery,Delivered], statusHistory[]
+
+### Request Flows
+
+**Order & Pay (test mode):** `POST /api/orders` → `POST /api/orders/:id/create-payment` (mock or Razorpay) → Frontend opens `RazorpayCheckout` (UPI/QR/Card/NetBanking/Wallet) → `POST /api/orders/:id/verify-payment` (simulateSuccess flag in mock) → inventory decrement → `order:status` emit → Tracking page + map animation.
+
+**Delivery Map (demo):** Leaflet + OSM tiles, Bezier route STORE→CUSTOMER, rider moves 0→100% over 90s when status=Sent to Delivery, ETA from progress, partner card with `tel:` + demo message.
+
+**Low Stock:** `node-cron` (local) scans `stockQuantity < lowStockThreshold`, deduped by `lastAlertedAt + STOCK_ALERT_COOLDOWN_MIN`, sends via Nodemailer, emits `stock:low`. On Vercel serverless cron doesn't persist — trigger manually via `npm run trigger:stock-check`.
 
 ---
 
@@ -96,9 +176,10 @@ npm run dev                 # → http://localhost:5173
 
 1. **Register** at `/register` → **Login** immediately — no verification step.
 2. **Build a pizza** at `/builder` — pick through all 4 steps, watch the running total.
-3. **Review** at `/summary` → *Proceed to Payment* → click **Simulate Success** 🎉 → land on live tracking.
-4. **Admin view**: open `/admin/login` in another window → *Orders* → move the order `In Kitchen → Sent to Delivery → Delivered` — watch the user page update **without refresh**.
-5. **Inventory**: check `/admin/inventory` — stock dropped by 1 per ingredient; set any item below its threshold and run `npm run trigger:stock-check` to fire the low-stock email.
+3. **Review** at `/summary` → *Proceed to Payment* → realistic Razorpay modal → try **UPI** (`test@okaxis`), **QR** (demo QR + Simulate Success), or **Card** (`4111…`) → land on live tracking.
+4. **Tracking** → watch the **demo delivery map** animate 🏪→🛵→📍, check ETA and partner card. Use **Simulate next status** to cycle without admin.
+5. **Admin view**: open `/admin/login` in another window → *Orders* → move the order `In Kitchen → Sent to Delivery → Delivered` — watch the user page update **without refresh**.
+6. **Inventory**: check `/admin/inventory` — stock dropped by 1 per ingredient; set any item below its threshold and run `npm run trigger:stock-check` to fire the low-stock email.
 
 ---
 
@@ -132,6 +213,7 @@ npm run dev                 # → http://localhost:5173
 ```
 Pizzaria/
 ├── server/
+│   ├── api/index.js     # Vercel serverless entry (REST)
 │   └── src/
 │       ├── config/      db · env · mailer · razorpay · cron
 │       ├── models/      User · Admin · Order · InventoryItem · PizzaOption
@@ -139,14 +221,16 @@ Pizzaria/
 │       ├── routes/      auth · admin · orders · pizza
 │       ├── middleware/  auth · validators (Joi) · error handler
 │       ├── services/    email · inventory decrement · stock alerts
-│       └── sockets/     Socket.IO rooms & join handling
+│       └── sockets/     Socket.IO rooms & join handling (local dev)
 ├── client/
 │   └── src/
 │       ├── pages/       public/ · user/ · admin/
-│       ├── components/  Navbar · ProtectedRoute
+│       ├── components/  Navbar · ProtectedRoute · PizzaArt · RealImage · RazorpayCheckout · DeliveryMap
 │       ├── context/     Auth + Admin providers
 │       ├── services/    axios instance & endpoint wrappers
+│       ├── data/        images (Unsplash CDN map)
 │       └── hooks/       useSocket
+├── readmefiles/         frontpage.png · menu.png · image.png
 └── README.md
 ```
 
@@ -164,13 +248,20 @@ Pizzaria/
 | `STOCK_CRON_SCHEDULE` | `*/10 * * * *` | Low-stock scan frequency |
 | `STOCK_ALERT_COOLDOWN_MIN` | `60` | Alert dedupe window |
 
+**Client (`client/.env`)**
+
+```
+VITE_API_URL=https://<your-api>.vercel.app/api
+VITE_SOCKET_URL=https://<your-api>.vercel.app
+```
+
 ---
 
 ## 📜 Scripts
 
 | | Command | Purpose |
 |---|---|---|
-| Server | `npm run dev` / `start` | Run API (+ sockets + cron) |
+| Server | `npm run dev` / `start` | Run API (+ sockets + cron) locally |
 | Server | `npm run seed` | Seed inventory, options & admin |
 | Server | `npm run seed:admin` | Seed admin only |
 | Server | `npm run trigger:stock-check` | Manually fire low-stock scan (demo) |
@@ -178,10 +269,17 @@ Pizzaria/
 
 ---
 
+## 🌐 Deployment (Vercel)
+
+- **Frontend** (`client`): Project Root `client`, Framework `Vite`, Build `npm run build`, Output `dist`, Env `VITE_API_URL` + `VITE_SOCKET_URL`. SPA rewrites via `client/vercel.json`.
+- **Backend** (`server`): Project Root `server`, Env as above, entry `api/index.js` with `server/vercel.json` rewrites. Serverless = REST only (polling fallback); for full Socket.IO + cron use **Render** (`npm start`).
+
+---
+
 ## 🧪 Testing Notes
 
-- **No SMTP? No problem.** With `SMTP_HOST` empty, every email (verification, reset, stock alerts) prints to the server console with clickable links — the register/forgot responses also return the dev token.
-- **No Razorpay keys? No problem.** `RAZORPAY_MOCK=true` enables the Simulate Success/Failure modal. Set real test keys + `RAZORPAY_MOCK=false` for the genuine Razorpay modal.
+- **No SMTP? No problem.** With `SMTP_HOST` empty, every email prints to the server console — the register/forgot responses also return the dev token.
+- **No Razorpay keys? No problem.** `RAZORPAY_MOCK=true` enables the realistic checkout with demo UPI/QR/Card — all simulated, no real money.
 - **No MongoDB Atlas?** Local `mongod` works out of the box.
 
 ---
