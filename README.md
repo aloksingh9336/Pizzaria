@@ -1,6 +1,7 @@
 <div align="center">
 
-# 🍕 Pizzaria
+#  OIBSIP - Web Development | Level 3 Task 1 - Pizzaria Platform
+**Organization:** Oasis Infobyte | **Internship:** Web Development and Designing
 
 ### Custom Pizza Ordering & Inventory Management Platform
 
